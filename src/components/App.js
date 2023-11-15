@@ -1,41 +1,43 @@
-import React, { useState } from "react";
-import Question from "./Question";
-import quiz from "../data/quiz";
+import React, { useState, useEffect } from "react";
 
-function App() {
-  const [questions, setQuestions] = useState(quiz);
-  const [currentQuestionId, setCurrentQuestion] = useState(1);
-  const [score, setScore] = useState(0);
-  const currentQuestion = questions.find((q) => q.id === currentQuestionId);
+function Question({ question, onAnswered }) {
+  const [timeRemaining, setTimeRemaining] = useState(10);
 
-  function handleQuestionAnswered(correct) {
-    if (currentQuestionId < questions.length) {
-      setCurrentQuestion((currentQuestionId) => currentQuestionId + 1);
-    } else {
-      setCurrentQuestion(null);
-    }
-    if (correct) {
-      setScore((score) => score + 1);
-    }
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      if (timeRemaining > 0) {
+        setTimeRemaining((prevTimeRemaining) => prevTimeRemaining - 1);
+      } else {
+        setTimeRemaining(10);
+        onAnswered(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timerId); // Cleanup function to clear the timer
+  }, [timeRemaining]);
+
+  function handleAnswer(isCorrect) {
+    setTimeRemaining(10);
+    onAnswered(isCorrect);
   }
 
+  const { id, prompt, answers, correctIndex } = question;
+
   return (
-    <main>
-      <section>
-        {currentQuestion ? (
-          <Question
-            question={currentQuestion}
-            onAnswered={handleQuestionAnswered}
-          />
-        ) : (
-          <>
-            <h1>Game Over</h1>
-            <h2>Total Correct: {score}</h2>
-          </>
-        )}
-      </section>
-    </main>
+    <>
+      <h1>Question {id}</h1>
+      <h3>{prompt}</h3>
+      {answers.map((answer, index) => {
+        const isCorrect = index === correctIndex;
+        return (
+          <button key={answer} onClick={() => handleAnswer(isCorrect)}>
+            {answer}
+          </button>
+        );
+      })}
+      <h5>{timeRemaining} seconds remaining</h5>
+    </>
   );
 }
 
-export default App;
+export default Question;

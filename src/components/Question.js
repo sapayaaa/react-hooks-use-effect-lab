@@ -1,13 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 function Question({ question, onAnswered }) {
   const [timeRemaining, setTimeRemaining] = useState(10);
 
-  // add useEffect code
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (timeRemaining > 0) {
+        setTimeRemaining((prevState) => prevState - 1);
+      } else {
+        setTimeRemaining(10);
+        onAnswered(false); // Time's up, answer is incorrect
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timeoutId); // Clean up the timeout function
+    };
+  }, [timeRemaining]); // Only run the effect when timeRemaining changes
 
   function handleAnswer(isCorrect) {
-    setTimeRemaining(10);
-    onAnswered(isCorrect);
+    setTimeRemaining(10); // Reset timeRemaining for the next question
+    onAnswered(isCorrect); // Pass the correct answer status
   }
 
   const { id, prompt, answers, correctIndex } = question;
